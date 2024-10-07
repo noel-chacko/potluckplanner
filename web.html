@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potluck Planner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    #attendees {
+      margin-top: 20px;
+    }
+    .attendee {
+      background-color: #e0e0e0;
+      margin: 5px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .attendee p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Potluck Planner</h1>
+
+  <form id="potluckForm">
+    <label for="name">Your Name:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label>Are you attending?</label><br>
+    <input type="radio" id="yes" name="attendance" value="Yes" required>
+    <label for="yes">Yes</label><br>
+    <input type="radio" id="no" name="attendance" value="No">
+    <label for="no">No</label><br><br>
+
+    <label for="dish">What will you bring?</label><br>
+    <input type="text" id="dish" name="dish" required><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="attendees">
+    <h2>Attendees</h2>
+    <div id="attendeeList"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('potluckForm');
+    const attendeeList = document.getElementById('attendeeList');
+
+    // Fetch existing attendees when the page loads
+    async function fetchAttendees() {
+      const response = await fetch('http://localhost:3000/attendees');
+      const attendees = await response.json();
+      attendeeList.innerHTML = ''; // Clear existing list
+      attendees.forEach(attendee => {
+        const attendeeDiv = document.createElement('div');
+        attendeeDiv.classList.add('attendee');
+        attendeeDiv.innerHTML = `<p><strong>${attendee.name}</strong> is bringing <strong>${attendee.dish}</strong></p>`;
+        attendeeList.appendChild(attendeeDiv);
+      });
+    }
+
+    // Submit form and post data to the server
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const attendance = document.querySelector('input[name="attendance"]:checked').value;
+      const dish = document.getElementById('dish').value;
+
+      const response = await fetch('http://localhost:3000/attendees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, attendance, dish })
+      });
+
+      if (response.ok) {
+        // Fetch and display the updated list of attendees
+        fetchAttendees();
+      } else {
+        console.log('Failed to add attendee');
+      }
+
+      form.reset();
+    });
+
+    // Load attendees on page load
+    fetchAttendees();
+  </script>
+
+</body>
+</html>
